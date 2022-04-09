@@ -1,19 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace EricBlogProject.Models
 {
-    public class Blog : Controller
+    public class Blog
     {
-        // GET: /<controller>/
-        public IActionResult Index()
-        {
-            return View();
-        }
+        public int ID { get; set; } // primary ID //
+        public string AuthorID { get; set; }
+
+        [Required]
+        [StringLength(100,ErrorMessage="The {0} must be at least {2} and at most {1} charaters.",MinimumLength = 2)]
+        public string Name { get; set; }
+
+        [Required]
+        [StringLength(500, ErrorMessage = "The {0} must be at least {2} and at most {1} charaters.", MinimumLength = 2)]
+        public string Description { get; set; }
+
+        [DataType(DataType.Date)]
+        [Display(Name="Created Date")]
+        public DateTime Created { get; set; }
+
+        [DataType(DataType.Date)]
+        [Display(Name = "Updated Date")]
+        public DateTime? Updated { get; set; }
+
+        [Display(Name="Blog Image")]
+        public byte[] ImageData { get; set; }
+
+        [Display(Name = "Image Type")]
+        public string ContentType { get; set; }
+
+        [NotMapped]
+        public IFormFile Image { get; set; }
+
     }
 }
