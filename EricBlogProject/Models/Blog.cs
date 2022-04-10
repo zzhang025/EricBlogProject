@@ -5,14 +5,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EricBlogProject.Models
 {
     public class Blog
     {
-        public int ID { get; set; } // primary ID //
-        public string AuthorID { get; set; }
+        public int Id { get; set; } // primary ID //
+        public string AuthorId { get; set; }
 
         [Required]
         [StringLength(100,ErrorMessage="The {0} must be at least {2} and at most {1} charaters.",MinimumLength = 2)]
@@ -38,6 +39,10 @@ namespace EricBlogProject.Models
 
         [NotMapped]
         public IFormFile Image { get; set; }
+
+        // Navigation Property //
+        public virtual IdentityUser Author { get; set; }
+        public virtual ICollection<Post> Posts { get; set; } = new HashSet<Post>();
 
     }
 }
