@@ -36,6 +36,7 @@ namespace EricBlogProject.Controllers
 
             var post = await _context.Posts
                 .Include(p => p.Blog)
+                .Include(p => p.BlogUser)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (post == null)
             {
@@ -45,11 +46,12 @@ namespace EricBlogProject.Controllers
             return View(post);
         }
 
-        // GET: Posts/Create
+        //GET: Posts/Create
         public IActionResult Create()
         {
-            ViewData["BlogId"] = new SelectList(_context.Blogs, "Id", "Description");
-            return View();
+           ViewData["BlogId"] = new SelectList(_context.Blogs, "Id", "Name");
+            ViewData["BlogUserId"] = new SelectList(_context.Users, "Id", "Id");
+             return View();
         }
 
         // POST: Posts/Create
@@ -57,16 +59,17 @@ namespace EricBlogProject.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,BlogId,BlogerUserId,Title,Abstract,Content,Created,Updated,ReadyStatus,Slug,ImageData,ContentType")] Post post)
+        public async Task<IActionResult> Create([Bind("BlogId,Title,Abstract,Content,ReadyStatus,Image")] Post post)
         {
             if (ModelState.IsValid)
-            {
-                _context.Add(post);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["BlogId"] = new SelectList(_context.Blogs, "Id", "Description", post.BlogId);
-            return View(post);
+                {
+                  post.Created = DateTime.Now;
+                  _context.Add(post);
+                    await _context.SaveChangesAsync();
+                  return RedirectToAction(nameof(Index));
+                }
+             ViewData["BlogId"] = new SelectList(_context.Blogs, "Id", "Description", post.BlogId);
+             return View(post);
         }
 
         // GET: Posts/Edit/5
@@ -82,7 +85,7 @@ namespace EricBlogProject.Controllers
             {
                 return NotFound();
             }
-            ViewData["BlogId"] = new SelectList(_context.Blogs, "Id", "Description", post.BlogId);
+            ViewData["BlogId"] = new SelectList(_context.Blogs, "Id", "Name", post.BlogId);
             return View(post);
         }
 
@@ -91,7 +94,7 @@ namespace EricBlogProject.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,BlogId,BlogerUserId,Title,Abstract,Content,Created,Updated,ReadyStatus,Slug,ImageData,ContentType")] Post post)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,BlogId,Title,Abstract,Content,ReadyStatus,Image")] Post post)
         {
             if (id != post.Id)
             {
@@ -102,6 +105,7 @@ namespace EricBlogProject.Controllers
             {
                 try
                 {
+                    post.Updated = DateTime.Now;
                     _context.Update(post);
                     await _context.SaveChangesAsync();
                 }

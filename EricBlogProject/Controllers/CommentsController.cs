@@ -20,10 +20,28 @@ namespace EricBlogProject.Controllers
         }
 
         // GET: Comments
+        public async Task<IActionResult> OriginalIndex()
+        {
+            var originalcomments = await _context.Comments.ToListAsync();
+            return View("Index",originalcomments);
+        }
+
+        public async Task<IActionResult> ModeratedIndex()
+        {
+            var moderatedcomments = await _context.Comments.Where(c => c.Moderated != null).ToListAsync();
+            return View("Index", moderatedcomments);
+        }
+
+        //public async Task<IActionResult> DeletedIndex()
+        //{
+          //  var deletedcomments = await _context.Comments.Where(c => c.Deleted != null).ToListAsync();
+          //  return View("Index", deletedcomments);
+        //}
+
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Comments.Include(c => c.BlogUser).Include(c => c.Moderator).Include(c => c.Post);
-            return View(await applicationDbContext.ToListAsync());
+            var allcomments = await _context.Comments.ToListAsync();
+            return View("Index", allcomments);
         }
 
         // GET: Comments/Details/5
@@ -48,13 +66,13 @@ namespace EricBlogProject.Controllers
         }
 
         // GET: Comments/Create
-        public IActionResult Create()
-        {
-            ViewData["BlogUserId"] = new SelectList(_context.Users, "Id", "Id");
-            ViewData["ModeratorId"] = new SelectList(_context.Users, "Id", "Id");
-            ViewData["PostId"] = new SelectList(_context.Posts, "Id", "Abstract");
-            return View();
-        }
+        //public IActionResult Create()
+        //{
+          //  ViewData["BlogUserId"] = new SelectList(_context.Users, "Id", "Id");
+           // ViewData["ModeratorId"] = new SelectList(_context.Users, "Id", "Id");
+           // ViewData["PostId"] = new SelectList(_context.Posts, "Id", "Abstract");
+           // return View();
+        //}
 
         // POST: Comments/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -69,9 +87,7 @@ namespace EricBlogProject.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["BlogUserId"] = new SelectList(_context.Users, "Id", "Id", comment.BlogUserId);
-            ViewData["ModeratorId"] = new SelectList(_context.Users, "Id", "Id", comment.ModeratorId);
-            ViewData["PostId"] = new SelectList(_context.Posts, "Id", "Abstract", comment.PostId);
+
             return View(comment);
         }
 
@@ -88,9 +104,7 @@ namespace EricBlogProject.Controllers
             {
                 return NotFound();
             }
-            ViewData["BlogUserId"] = new SelectList(_context.Users, "Id", "Id", comment.BlogUserId);
-            ViewData["ModeratorId"] = new SelectList(_context.Users, "Id", "Id", comment.ModeratorId);
-            ViewData["PostId"] = new SelectList(_context.Posts, "Id", "Abstract", comment.PostId);
+            
             return View(comment);
         }
 
