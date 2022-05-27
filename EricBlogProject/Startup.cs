@@ -13,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using EricBlogProject.Models;
+using EricBlogProject.Services;
+using EricBlogProject.ViewModels;
 
 namespace EricBlogProject
 {
@@ -31,6 +33,7 @@ namespace EricBlogProject
             //services.AddDbContext<ApplicationDbContext>(options =>
             //    options.UseSqlite(
             //        Configuration.GetConnectionString("DefaultConnection"))); //Postgre or MS SQl
+
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
             services.AddDatabaseDeveloperPageExceptionFilter();
@@ -41,6 +44,19 @@ namespace EricBlogProject
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddControllersWithViews();
             services.AddRazorPages();
+
+            // Register my DataService Class
+            services.AddScoped<DataService>();
+
+            // Register a preconfigured instance of the MailSettings class
+            services.Configure<MailSettings>(Configuration.GetSection("MailSettings"));
+            services.AddScoped<IBlogEmailSender, EmailService>();
+
+            // Register Image Service
+            services.AddScoped<IImageService, BasicImageService>();
+
+            // Register Slug Service
+            services.AddScoped<ISlugService, BasicSlugService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

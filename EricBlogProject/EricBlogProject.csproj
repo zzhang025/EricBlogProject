@@ -13,6 +13,9 @@
     <None Remove="Microsoft.VisualStudio.Web.CodeGeneration.Design" />
     <None Remove="Microsoft.EntityFrameworkCore.SqlServer" />
     <None Remove="Services\" />
+    <None Remove="ViewModels\" />
+    <None Remove="MimeKit" />
+    <None Remove="MailKit" />
   </ItemGroup>
   <ItemGroup>
     <None Update="app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
@@ -29,12 +32,15 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.10" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.15" />
+    <PackageReference Include="MimeKit" Version="3.2.0" />
+    <PackageReference Include="MailKit" Version="3.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Enums\" />
     <Folder Include="wwwroot\" />
     <Folder Include="Services\" />
+    <Folder Include="ViewModels\" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="wwwroot\" />

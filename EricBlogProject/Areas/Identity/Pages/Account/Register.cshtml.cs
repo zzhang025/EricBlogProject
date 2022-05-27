@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using EricBlogProject.Services;
 
 namespace EricBlogProject.Areas.Identity.Pages.Account
 {
@@ -23,13 +24,14 @@ namespace EricBlogProject.Areas.Identity.Pages.Account
         private readonly SignInManager<BlogUser> _signInManager;
         private readonly UserManager<BlogUser> _userManager;
         private readonly ILogger<RegisterModel> _logger;
-        private readonly IEmailSender _emailSender;
+        // private readonly IEmailSender _emailSender;
+        private readonly IBlogEmailSender _emailSender;
 
         public RegisterModel(
             UserManager<BlogUser> userManager,
             SignInManager<BlogUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IBlogEmailSender emailSender)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -46,6 +48,21 @@ namespace EricBlogProject.Areas.Identity.Pages.Account
 
         public class InputModel
         {
+            [Required]
+            [StringLength(50, ErrorMessage = "The {0} must be at least {2} and no more than {1} characters long.", MinimumLength = 2)]
+            [Display(Name = "First Name")]
+            public string FirstName { get; set; }
+
+            [Required]
+            [StringLength(50, ErrorMessage = "The {0} must be at least {2} and no more than {1} characters long.", MinimumLength = 2)]
+            [Display(Name = "Last Name")]
+            public string LastName { get; set; }
+
+            [Required]
+            [StringLength(50, ErrorMessage = "The {0} must be at least {2} and no more than {1} characters long.", MinimumLength = 2)]
+            [Display(Name = "Display Name")]
+            public string DisplayName { get; set; }
+
             [Required]
             [EmailAddress]
             [Display(Name = "Email")]
@@ -75,7 +92,14 @@ namespace EricBlogProject.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
             if (ModelState.IsValid)
             {
-                var user = new BlogUser { UserName = Input.Email, Email = Input.Email };
+                var user = new BlogUser
+                {
+                    FirstName = Input.FirstName,
+                    LastName = Input.LastName,
+                    DisplayName = Input.DisplayName,
+                    UserName = Input.Email,
+                    Email = Input.Email
+                };
                 var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
