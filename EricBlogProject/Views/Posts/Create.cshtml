@@ -8,9 +8,10 @@
 <h4>Post</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-8 mb-3">
         <form asp-action="Create" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
             <div class="form-group">
                 <label asp-for="BlogId" class="control-label"></label>
                 <select asp-for="BlogId" class="form-control" asp-items="ViewBag.BlogId"></select>
@@ -30,11 +31,6 @@
                 <textarea asp-for="Content" class="form-control"></textarea>
                 <span asp-validation-for="Content" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="ReadyStatus" class="control-label"></label>
-                <select asp-for="ReadyStatus" asp-items="@Html.GetEnumSelectList<ReadyStatus>()" class="form-control"></select>
-                <span asp-validation-for="ReadyStatus" class="text-danger"></span>
-            </div>
 
             <div class="form-group">
                 <label asp-for="Image" class="control-label"></label>
@@ -43,7 +39,43 @@
             </div>
 
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <div class="row mb-3">
+                    <div class="col">
+                        <label class="control-label">Manage Tags</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="row mb-3">
+                            <div class="col">
+                                <input type="text" class="form-control" id="TagEntry" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <button onclick="AddTag()" type="button" class="btn btn-dark btn-sm btn-block" name="Add">Add</button>
+                            </div>
+                            <div class="col">
+                                <button onclick="DeleteTag()" name="Delete" type="button" class="btn btn-dark btn-sm btn-block">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <select class="btn-block" name="TagValues" id="TagList" multiple="multiple" style="width:500px;"></select>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <div class="form-group">
+                <label asp-for="ReadyStatus" class="control-label"></label>
+                <select asp-for="ReadyStatus" asp-items="@Html.GetEnumSelectList<ReadyStatus>()" class="form-control"></select>
+                <span asp-validation-for="ReadyStatus" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-sm btn-primary" />
             </div>
         </form>
     </div>
@@ -54,9 +86,12 @@
 </div>
 
 @section Scripts{
+    <script>
+        let tagValues = '@ViewData["TagValues"]';
 
-    <script>//Default font size but not for placeholder...
         $('#Content').summernote({
             placeholder: "Post Body"
         });</script>
+
+    <script src="~/js/Custom.js"></script>
 }

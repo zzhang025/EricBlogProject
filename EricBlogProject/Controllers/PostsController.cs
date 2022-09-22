@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using EricBlogProject.Data;
 using EricBlogProject.Models;
 using EricBlogProject.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 
 namespace EricBlogProject.Controllers
 {
@@ -15,11 +17,15 @@ namespace EricBlogProject.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ISlugService _slugService;
+        private readonly IImageService _imageService;
+        private readonly UserManager<BlogUser> _userManager;
 
-        public PostsController(ApplicationDbContext context, ISlugService slugService)
+        public PostsController(ApplicationDbContext context, ISlugService slugService, IImageService imageService, UserManager<BlogUser> userManager)
         {
             _context = context;
             _slugService = slugService;
+            _imageService = imageService;
+            _userManager = userManager;
         }
 
         // GET: Posts
@@ -40,6 +46,7 @@ namespace EricBlogProject.Controllers
             var post = await _context.Posts
                 .Include(p => p.Blog)
                 .Include(p => p.BlogUser)
+                .Include(p => p.Tags)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (post == null)
             {
@@ -67,21 +74,67 @@ namespace EricBlogProject.Controllers
             if (ModelState.IsValid)
                 {
                   post.Created = DateTime.Now;
+                var authorId = _userManager.GetUserId(User);
+                post.BlogerUserId = authorId;
+
+                // Use the _imageService to store the incoming user specified image
+                post.ImageData = await _imageService.EncodeImageAsync(post.Image);
+                post.ContentType = _imageService.ContentType(post.Image);
 
                 // Create the slug and determine if it is unique
                 var slug = _slugService.UrlFriendly(post.Title);
 
-                if (!_slugService.IsUnique(slug))
+                //Create a variable to store whether an error has occurred
+
+                var validationError = false;
+
+                if (string.IsNullOrEmpty(slug))
                 {
+                    validationError = true;
+                    ModelState.AddModelError("", "The Title you provided cannot be used as it results in an empty slug");
+                 
+                }
+
+                else if (!_slugService.IsUnique(slug))
+                {
+                    validationError = true;
                     ModelState.AddModelError("Title", "The Title you provided cannot be as it results in a duplicate slug.");
+                }
+
+                else if (slug.Contains("test"))
+                {
+                    validationError = true;
+                    ModelState.AddModelError("", "Uh-oh are you testing again??");
+                    ModelState.AddModelError("Title", "The Title cannot contain the word 'test'");
+
+                }
+
+
+                if (validationError)
+                {
                     ViewData["TagValues"] = string.Join(",", tagValues);
                     return View(post);
                 }
+
                 post.Slug = slug;
-             
-                  _context.Add(post);
+
+                _context.Add(post);
                     await _context.SaveChangesAsync();
-                  return RedirectToAction(nameof(Index));
+
+                //How do I loop over the incoming list of string?
+                foreach(var tagText in tagValues)
+                {
+                    _context.Add(new Tag()
+                    {
+                        PostId = post.Id,
+                        BlogUserId = authorId,
+                        Text = tagText,
+
+                    });
+                   
+                }
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
                 }
              ViewData["BlogId"] = new SelectList(_context.Blogs, "Id", "Description", post.BlogId);
              return View(post);
@@ -95,12 +148,13 @@ namespace EricBlogProject.Controllers
                 return NotFound();
             }
 
-            var post = await _context.Posts.FindAsync(id);
+            var post = await _context.Posts.Include(p=> p.Tags).FirstOrDefaultAsync(p => p.Id == id);
             if (post == null)
             {
                 return NotFound();
             }
             ViewData["BlogId"] = new SelectList(_context.Blogs, "Id", "Name", post.BlogId);
+            ViewData["TagValues"] = string.Join(",", post.Tags.Select(t => t.Text));
             return View(post);
         }
 
@@ -109,7 +163,7 @@ namespace EricBlogProject.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,BlogId,Title,Abstract,Content,ReadyStatus,Image")] Post post)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,BlogId,Title,Abstract,Content,ReadyStatus")] Post post, IFormFile newImage, List<string> tagValues)
         {
             if (id != post.Id)
             {
@@ -120,8 +174,51 @@ namespace EricBlogProject.Controllers
             {
                 try
                 {
-                    post.Updated = DateTime.Now;
-                    _context.Update(post);
+                    // The original Post
+                    var newPost = await _context.Posts.Include(p => p.Tags).FirstOrDefaultAsync(p => p.Id == post.Id);
+
+                    newPost.Updated = DateTime.Now;
+                    newPost.Title = post.Title;
+                    newPost.Abstract = post.Abstract;
+                    newPost.Content = post.Content;
+                    newPost.ReadyStatus = post.ReadyStatus;
+
+                    var newSlug = _slugService.UrlFriendly(post.Title);
+                    if(newSlug != newPost.Slug)
+                    {
+                        if (_slugService.IsUnique(newSlug))
+                        {
+                            newPost.Title = post.Title;
+                            newPost.Slug = newSlug;
+                        }
+                        else
+                        {
+                            ModelState.AddModelError("Title", "This Title cannot be used as it results in a duplicate slug.");
+                            ViewData["TagValues"] = string.Join(",", post.Tags.Select(t => t.Text));
+                            return View(post);
+                        }
+                    }
+
+
+                    if (newImage is not null)
+                    {
+                        newPost.ImageData = await _imageService.EncodeImageAsync(newImage);
+                        newPost.Content = _imageService.ContentType(newImage);
+                    }
+
+                    // Remove all Tags previously associated with this post
+                    _context.Tags.RemoveRange(newPost.Tags);
+
+                    // Add in the new Tags from the edit form
+                    foreach(var tagText in tagValues)
+                    {
+                        _context.Add(new Tag() {
+                            PostId = post.Id,
+                            BlogUserId = newPost.BlogerUserId,
+                            Text = tagText
+                        });
+                    }
+
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -138,6 +235,7 @@ namespace EricBlogProject.Controllers
                 return RedirectToAction(nameof(Index));
             }
             ViewData["BlogId"] = new SelectList(_context.Blogs, "Id", "Description", post.BlogId);
+            ViewData["BlogUserID"] = new SelectList(_context.Users, "Id", "Id", post.BlogerUserId);
             return View(post);
         }
 

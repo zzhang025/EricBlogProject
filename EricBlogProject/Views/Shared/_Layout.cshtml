@@ -43,7 +43,7 @@
                         <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-action="About" asp-controller="Home">About</a></li>
                         <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-action="Contact" asp-controller="Home">Contact</a></li>
                     </ul>
-                    <partial name="_LoginPartial"/>
+                    <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>
@@ -61,7 +61,9 @@
             </div>
         </header>
         <!-- Main Content-->
-        @RenderBody()
+        <main>
+            @RenderBody()
+        </main>
         <!-- Footer-->
         <footer class="border-top">
             <div class="container px-4 px-lg-5">
@@ -106,6 +108,9 @@
 
         <!-- Summernote js file-->
         <script src="~/js/summernote-lite.js"></script>
+
+        <!-- Sweet Alert2 plugin -->
+        <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
         @await RenderSectionAsync("Scripts", required: false)
 
