@@ -33,7 +33,7 @@
                 <span asp-validation-for="Content" class="text-danger"></span>
             </div>
 
-            <div class="form-group">
+               <div class="form-group">
                 <div class="row mb-3">
                     <div class="col">
                         <label class="control-label">Manage Tags</label>
@@ -48,7 +48,7 @@
                         </div>
                         <div class="row">
                             <div class="col">
-                                <button onclick="AddTag()" type="button" class="btn btn-dark btn-sm btn-block" name="Add">Add</button>
+                                <button onclick="AddTag()" name="Add" type="button" class="btn btn-dark btn-sm btn-block">Add</button>
                             </div>
                             <div class="col">
                                 <button onclick="DeleteTag()" name="Delete" type="button" class="btn btn-dark btn-sm btn-block">Delete</button>
@@ -62,15 +62,17 @@
             </div>
 
             <div class="form-group">
-                <label asp-for="ReadyStatus" class="control-label"></label>
-                <select asp-for="ReadyStatus" class="form-control" asp-items="Html.GetEnumSelectList<ReadyStatus>()"></select>
-                <span asp-validation-for="ReadyStatus" class="text-danger"></span>
-            </div>
-            <div class="form-group">
                 <label asp-for="Image" class="control-label"></label>
                 <input type="file" name="newImage" class="form-control" />
                 <span asp-validation-for="Image" class="text-danger"></span>
             </div>
+
+            <div class="form-group">
+                <label asp-for="ReadyStatus" class="control-label"></label>
+                <select asp-for="ReadyStatus" class="form-control" asp-items="Html.GetEnumSelectList<ReadyStatus>()"></select>
+                <span asp-validation-for="ReadyStatus" class="text-danger"></span>
+            </div>
+
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
@@ -84,13 +86,13 @@
 
 @section Scripts {
 
-        <script>
-            let tagValues = '@ViewData["TagValues"]';
+    <script>
+         let tagValues = '@ViewData["TagValues"]';
+
 //Default font size but not for placeholder...
         $('#Content').summernote({
             placeholder: "Post Body"
-        });</script>
-    <script src="~/js/Custom.js"></script>
-
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+        });
+    </script>
+    <script src="~/wwwroot/js/Custom.js"></script>
 }

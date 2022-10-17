@@ -31,7 +31,7 @@ namespace EricBlogProject.Controllers
         // GET: Posts
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.Posts.Include(p => p.Blog);
+            var applicationDbContext = _context.Posts.Include(p => p.Blog).Include(p=>p.BlogUser);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -47,7 +47,7 @@ namespace EricBlogProject.Controllers
                 .Include(p => p.Blog)
                 .Include(p => p.BlogUser)
                 .Include(p => p.Tags)
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Id  == id);
             if (post == null)
             {
                 return NotFound();
@@ -119,7 +119,7 @@ namespace EricBlogProject.Controllers
                 post.Slug = slug;
 
                 _context.Add(post);
-                    await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
                 //How do I loop over the incoming list of string?
                 foreach(var tagText in tagValues)
@@ -128,7 +128,7 @@ namespace EricBlogProject.Controllers
                     {
                         PostId = post.Id,
                         BlogUserId = authorId,
-                        Text = tagText,
+                        Text = tagText
 
                     });
                    
@@ -149,6 +149,7 @@ namespace EricBlogProject.Controllers
             }
 
             var post = await _context.Posts.Include(p=> p.Tags).FirstOrDefaultAsync(p => p.Id == id);
+
             if (post == null)
             {
                 return NotFound();
@@ -175,8 +176,7 @@ namespace EricBlogProject.Controllers
                 try
                 {
                     // The original Post
-                    var newPost = await _context.Posts.Include(p => p.Tags).FirstOrDefaultAsync(p => p.Id == post.Id);
-
+                    var newPost = await _context.Posts.Include(p=>p.Tags).FirstOrDefaultAsync(p=>p.Id == post.Id);
                     newPost.Updated = DateTime.Now;
                     newPost.Title = post.Title;
                     newPost.Abstract = post.Abstract;
@@ -210,7 +210,7 @@ namespace EricBlogProject.Controllers
                     _context.Tags.RemoveRange(newPost.Tags);
 
                     // Add in the new Tags from the edit form
-                    foreach(var tagText in tagValues)
+                    foreach (var tagText in tagValues)
                     {
                         _context.Add(new Tag() {
                             PostId = post.Id,
